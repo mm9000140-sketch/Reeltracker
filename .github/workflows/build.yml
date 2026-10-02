@@ -51,31 +51,31 @@ jobs:
               implementation("com.google.android.gms:play-services-ads:25.5.0")
           }
           EOF
-          mkdir -p $(dirname app/src/main/AndroidManifest.xml)
-          cat > app/src/main/AndroidManifest.xml <<'EOF'
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <application android:label="Reel Tracker" android:theme="@android:style/Theme.Material.Light.NoActionBar">
-              <meta-data
-    android:name="com.google.android.gms.ads.APPLICATION_ID"
-    android:value="ca-app-pub-4273528173136721~3385684921"/>
-                  <activity android:name=".MainActivity" android:exported="true">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.LAUNCHER"/>
-                      </intent-filter>
-                  </activity>
-                  <service android:name=".ReelService" android:exported="false"
-                      android:label="Reel Tracker"
-                      android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-                      <intent-filter>
-                          <action android:name="android.accessibilityservice.AccessibilityService"/>
-                      </intent-filter>
-                      <meta-data android:name="android.accessibilityservice"
-                          android:resource="@xml/accessibility_config"/>
-                  </service>
-              </application>
-          </manifest>
-          EOF
+                  mkdir -p $(dirname app/src/main/AndroidManifest.xml)
+                cat > app/src/main/AndroidManifest.xml <<'EOF'
+                <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+                <application android:label="Reel Tracker" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+                <meta-data
+                android:name="com.google.android.gms.ads.APPLICATION_ID"
+                android:value="ca-app-pub-4273528173136721~3385684921"/>
+                <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+                </activity>
+                <service android:name=".ReelService" android:exported="false"
+                android:label="Reel Tracker"
+                android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+                <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService"/>
+                </intent-filter>
+                <meta-data android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config"/>
+                </service>
+                </application>
+                </manifest>
+                EOF
           mkdir -p $(dirname app/src/main/java/com/example/reeltracker/MainActivity.kt)
           cat > app/src/main/java/com/example/reeltracker/MainActivity.kt <<'EOF'
           package com.example.reeltracker
@@ -94,10 +94,10 @@ jobs:
           import androidx.compose.runtime.*
           import androidx.compose.ui.Alignment
           import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.platform.LocalContext
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+          import androidx.compose.ui.platform.LocalContext
+          import com.google.android.gms.ads.AdRequest
+          import com.google.android.gms.ads.AdSize
+          import com.google.android.gms.ads.AdView
           import androidx.compose.ui.Modifier
           import androidx.compose.ui.geometry.CornerRadius
           import androidx.compose.ui.geometry.Offset
@@ -210,7 +210,6 @@ fun Dashboard() {
                       }
                       Spacer(Modifier.height(16.dp))
                       AdBanner()
-AdBanner()
                   }
               }
 
