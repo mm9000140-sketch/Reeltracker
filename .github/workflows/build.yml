@@ -23,6 +23,8 @@ jobs:
       - name: Write project files
         run: |
           mkdir -p $(dirname app/build.gradle.kts)
+          mkdir -p app/src/main/res/drawable
+          cp file_00000000f4048207893b237597bb2e69.png app/src/main/res/drawable/reel_tracker_icon.png
 
           cat > app/build.gradle.kts <<'EOF'
           plugins {
@@ -68,8 +70,9 @@ jobs:
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <application
-                  android:label="Reel Tracker"
-                  android:theme="@android:style/Theme.Material.Light.NoActionBar">
+         android:label="Reel Tracker"
+         android:icon="@drawable/reel_tracker_icon"
+         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
                   <meta-data
                       android:name="com.google.android.gms.ads.APPLICATION_ID"
