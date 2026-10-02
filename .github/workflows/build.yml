@@ -19,10 +19,11 @@ jobs:
           mkdir -p $(dirname app/build.gradle.kts)
           cat > app/build.gradle.kts <<'EOF'
           plugins {
-              id("com.android.application")
-              id("org.jetbrains.kotlin.android")
-              id("org.jetbrains.kotlin.plugin.compose")
-                    android {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+}
+android {
               namespace = "com.example.reeltracker"
               compileSdk = 35
               defaultConfig {
