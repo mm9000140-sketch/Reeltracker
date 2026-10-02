@@ -48,12 +48,16 @@ jobs:
               implementation("androidx.compose.ui:ui")
               implementation("androidx.activity:activity-compose:1.9.3")
               implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+              implementation("com.google.android.gms:play-services-ads:25.5.0")
           }
           EOF
           mkdir -p $(dirname app/src/main/AndroidManifest.xml)
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <application android:label="Reel Tracker" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+              <meta-data
+    android:name="com.google.android.gms.ads.APPLICATION_ID"
+    android:value="ca-app-pub-4273528173136721~3385684921"/>
                   <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN"/>
@@ -79,6 +83,7 @@ jobs:
           import android.content.Intent
           import android.os.Bundle
           import android.provider.Settings
+          import com.google.android.gms.ads.MobileAds
           import androidx.activity.ComponentActivity
           import androidx.activity.compose.setContent
           import androidx.compose.foundation.Canvas
@@ -88,6 +93,11 @@ jobs:
           import androidx.compose.material3.*
           import androidx.compose.runtime.*
           import androidx.compose.ui.Alignment
+          import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.platform.LocalContext
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
           import androidx.compose.ui.Modifier
           import androidx.compose.ui.geometry.CornerRadius
           import androidx.compose.ui.geometry.Offset
@@ -103,17 +113,37 @@ jobs:
           import java.util.Locale
 
           class MainActivity : ComponentActivity() {
-              override fun onCreate(s: Bundle?) {
-                  super.onCreate(s)
-                  setContent { MaterialTheme { Dashboard() } }
-              }
+              override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+
+    MobileAds.initialize(this)
+
+    setContent { MaterialTheme { Dashboard() } }
+}
 
               private fun serviceOn() = Settings.Secure.getString(
-                  contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-              )?.contains("$packageName/.ReelService") == true
+    contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+)?.contains("$packageName/.ReelService") == true
 
-              @Composable
-              fun Dashboard() {
+@Composable
+fun AdBanner() {
+    val context = LocalContext.current
+
+    AndroidView(
+        modifier = Modifier.fillMaxWidth(),
+        factory = { ctx ->
+            AdView(ctx).apply {
+                setAdSize(AdSize.BANNER)
+                adUnitId = "ca-app-pub-3940256099942544/9214589741"
+                loadAd(AdRequest.Builder().build())
+            }
+        }
+    )
+}
+
+@Composable
+fun Dashboard() {
+
                   var tick by remember { mutableStateOf(0) }
                   val owner = LocalLifecycleOwner.current
                   DisposableEffect(owner) {
@@ -178,6 +208,9 @@ jobs:
                           Button(onClick = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                               Modifier.fillMaxWidth()) { Text("Enable tracking (Accessibility)") }
                       }
+                      Spacer(Modifier.height(16.dp))
+                      AdBanner()
+AdBanner()
                   }
               }
 
