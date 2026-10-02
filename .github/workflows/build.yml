@@ -1,31 +1,40 @@
 name: Build APK
+
 on:
   push:
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
+
       - name: Write project files
         run: |
           mkdir -p $(dirname app/build.gradle.kts)
+
           cat > app/build.gradle.kts <<'EOF'
-                    plugins {
+          plugins {
               id("com.android.application")
               id("org.jetbrains.kotlin.android")
               id("org.jetbrains.kotlin.plugin.compose")
           }
-          android { 
+
+          android {
               namespace = "com.example.reeltracker"
               compileSdk = 35
+
               defaultConfig {
                   applicationId = "com.example.reeltracker"
                   minSdk = 26
@@ -38,10 +47,12 @@ jobs:
                   sourceCompatibility = JavaVersion.VERSION_17
                   targetCompatibility = JavaVersion.VERSION_17
               }
+
               buildFeatures {
                   compose = true
               }
           }
+
           dependencies {
               implementation(platform("androidx.compose:compose-bom:2024.10.00"))
               implementation("androidx.compose.material3:material3")
@@ -51,41 +62,62 @@ jobs:
               implementation("com.google.android.gms:play-services-ads:25.5.0")
           }
           EOF
-                  mkdir -p $(dirname app/src/main/AndroidManifest.xml)
-                cat > app/src/main/AndroidManifest.xml <<'EOF'
-                <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-                <application android:label="Reel Tracker" android:theme="@android:style/Theme.Material.Light.NoActionBar">
-                <meta-data
-                android:name="com.google.android.gms.ads.APPLICATION_ID"
-                android:value="ca-app-pub-4273528173136721~3385684921"/>
-                <activity android:name=".MainActivity" android:exported="true">
-                <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-                </intent-filter>
-                </activity>
-                <service android:name=".ReelService" android:exported="false"
-                android:label="Reel Tracker"
-                android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-                <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService"/>
-                </intent-filter>
-                <meta-data android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_config"/>
-                </service>
-                </application>
-                </manifest>
-                EOF
+
+          mkdir -p $(dirname app/src/main/AndroidManifest.xml)
+
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application
+                  android:label="Reel Tracker"
+                  android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+                  <meta-data
+                      android:name="com.google.android.gms.ads.APPLICATION_ID"
+                      android:value="ca-app-pub-4273528173136721~3385684921"/>
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+
+                  </activity>
+
+                  <service
+                      android:name=".ReelService"
+                      android:exported="false"
+                      android:label="Reel Tracker"
+                      android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+
+                      <intent-filter>
+                          <action android:name="android.accessibilityservice.AccessibilityService"/>
+                      </intent-filter>
+
+                      <meta-data
+                          android:name="android.accessibilityservice"
+                          android:resource="@xml/accessibility_config"/>
+
+                  </service>
+
+              </application>
+          </manifest>
+          EOF
+
           mkdir -p $(dirname app/src/main/java/com/example/reeltracker/MainActivity.kt)
+
           cat > app/src/main/java/com/example/reeltracker/MainActivity.kt <<'EOF'
           package com.example.reeltracker
 
           import android.content.Intent
           import android.os.Bundle
           import android.provider.Settings
-          import com.google.android.gms.ads.MobileAds
+
           import androidx.activity.ComponentActivity
           import androidx.activity.compose.setContent
+
           import androidx.compose.foundation.Canvas
           import androidx.compose.foundation.background
           import androidx.compose.foundation.layout.*
@@ -93,11 +125,6 @@ jobs:
           import androidx.compose.material3.*
           import androidx.compose.runtime.*
           import androidx.compose.ui.Alignment
-          import androidx.compose.ui.viewinterop.AndroidView
-          import androidx.compose.ui.platform.LocalContext
-          import com.google.android.gms.ads.AdRequest
-          import com.google.android.gms.ads.AdSize
-          import com.google.android.gms.ads.AdView
           import androidx.compose.ui.Modifier
           import androidx.compose.ui.geometry.CornerRadius
           import androidx.compose.ui.geometry.Offset
@@ -106,97 +133,212 @@ jobs:
           import androidx.compose.ui.text.font.FontWeight
           import androidx.compose.ui.unit.dp
           import androidx.compose.ui.unit.sp
+          import androidx.compose.ui.viewinterop.AndroidView
+
           import androidx.lifecycle.Lifecycle
           import androidx.lifecycle.LifecycleEventObserver
           import androidx.compose.ui.platform.LocalLifecycleOwner
+
+          import com.google.android.gms.ads.AdRequest
+          import com.google.android.gms.ads.AdSize
+          import com.google.android.gms.ads.AdView
+          import com.google.android.gms.ads.MobileAds
+
           import java.time.format.TextStyle
           import java.util.Locale
 
           class MainActivity : ComponentActivity() {
+
               override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+                  super.onCreate(savedInstanceState)
 
-    MobileAds.initialize(this)
+                  MobileAds.initialize(this)
 
-    setContent { MaterialTheme { Dashboard() } }
-}
+                  setContent {
+                      MaterialTheme {
+                          Dashboard()
+                      }
+                  }
+              }
 
               private fun serviceOn() = Settings.Secure.getString(
-    contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-)?.contains("$packageName/.ReelService") == true
+                  contentResolver,
+                  Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+              )?.contains("$packageName/.ReelService") == true
 
-@Composable
-fun AdBanner() {
-    val context = LocalContext.current
-
-    AndroidView(
-        modifier = Modifier.fillMaxWidth(),
-        factory = { ctx ->
-            AdView(ctx).apply {
-                setAdSize(AdSize.BANNER)
-                adUnitId = "ca-app-pub-3940256099942544/9214589741"
-                loadAd(AdRequest.Builder().build())
-            }
-        }
-    )
-}
-
-@Composable
-fun Dashboard() {
+              @Composable
+              fun Dashboard() {
 
                   var tick by remember { mutableStateOf(0) }
+
                   val owner = LocalLifecycleOwner.current
+
                   DisposableEffect(owner) {
-                      val o = LifecycleEventObserver { _, e -> if (e == Lifecycle.Event.ON_RESUME) tick++ }
-                      owner.lifecycle.addObserver(o); onDispose { owner.lifecycle.removeObserver(o) }
-                  }
-                  val week = remember(tick) { ReelStore.lastDays(this, 7) }
-                  val today = week.last().second
-                  val total = week.sumOf { it.second }
-                  val max = (week.maxOf { it.second }).coerceAtLeast(1)
-                  val on = remember(tick) { serviceOn() }
-                  val accent = Color(0xFFE1306C)
-
-                  Column(Modifier.fillMaxSize().background(Color(0xFFFAFAFA)).padding(20.dp)
-                      .statusBarsPadding()) {
-                      Text("Reel Tracker", fontSize = 26.sp, fontWeight = FontWeight.Bold)
-                      Spacer(Modifier.height(16.dp))
-
-                      Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
-                          colors = CardDefaults.cardColors(containerColor = accent)) {
-                          Column(Modifier.padding(24.dp)) {
-                              Text("Today", color = Color.White.copy(.8f))
-                              Text("$today", fontSize = 56.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                              Text("reels scrolled", color = Color.White.copy(.8f))
+                      val observer = LifecycleEventObserver { _, event ->
+                          if (event == Lifecycle.Event.ON_RESUME) {
+                              tick++
                           }
                       }
-                      Spacer(Modifier.height(12.dp))
-                      Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                          Stat("This week", "$total", Modifier.weight(1f))
-                          Stat("Daily avg", "${total / 7}", Modifier.weight(1f))
+
+                      owner.lifecycle.addObserver(observer)
+
+                      onDispose {
+                          owner.lifecycle.removeObserver(observer)
                       }
+                  }
+
+                  val week = remember(tick) {
+                      ReelStore.lastDays(this, 7)
+                  }
+
+                  val today = week.last().second
+                  val total = week.sumOf { it.second }
+                  val max = week.maxOf { it.second }.coerceAtLeast(1)
+
+                  val on = remember(tick) {
+                      serviceOn()
+                  }
+
+                  val accent = Color(0xFFE1306C)
+
+                  Column(
+                      modifier = Modifier
+                          .fillMaxSize()
+                          .background(Color(0xFFFAFAFA))
+                          .padding(20.dp)
+                          .statusBarsPadding()
+                  ) {
+
+                      Text(
+                          "Reel Tracker",
+                          fontSize = 26.sp,
+                          fontWeight = FontWeight.Bold
+                      )
+
+                      Spacer(Modifier.height(16.dp))
+
+                      Card(
+                          modifier = Modifier.fillMaxWidth(),
+                          shape = RoundedCornerShape(20.dp),
+                          colors = CardDefaults.cardColors(
+                              containerColor = accent
+                          )
+                      ) {
+                          Column(
+                              modifier = Modifier.padding(24.dp)
+                          ) {
+                              Text(
+                                  "Today",
+                                  color = Color.White.copy(alpha = .8f)
+                              )
+
+                              Text(
+                                  "$today",
+                                  fontSize = 56.sp,
+                                  fontWeight = FontWeight.Bold,
+                                  color = Color.White
+                              )
+
+                              Text(
+                                  "reels scrolled",
+                                  color = Color.White.copy(alpha = .8f)
+                              )
+                          }
+                      }
+
                       Spacer(Modifier.height(12.dp))
 
-                      Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
-                          colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                          Column(Modifier.padding(16.dp)) {
-                              Text("Last 7 days", fontWeight = FontWeight.SemiBold)
-                              Canvas(Modifier.fillMaxWidth().height(140.dp).padding(top = 12.dp)) {
+                      Row(
+                          horizontalArrangement = Arrangement.spacedBy(12.dp)
+                      ) {
+                          Stat(
+                              "This week",
+                              "$total",
+                              Modifier.weight(1f)
+                          )
+
+                          Stat(
+                              "Daily avg",
+                              "${total / 7}",
+                              Modifier.weight(1f)
+                          )
+                      }
+
+                      Spacer(Modifier.height(12.dp))
+
+                      Card(
+                          modifier = Modifier.fillMaxWidth(),
+                          shape = RoundedCornerShape(20.dp),
+                          colors = CardDefaults.cardColors(
+                              containerColor = Color.White
+                          )
+                      ) {
+                          Column(
+                              modifier = Modifier.padding(16.dp)
+                          ) {
+
+                              Text(
+                                  "Last 7 days",
+                                  fontWeight = FontWeight.SemiBold
+                              )
+
+                              Canvas(
+                                  modifier = Modifier
+                                      .fillMaxWidth()
+                                      .height(140.dp)
+                                      .padding(top = 12.dp)
+                              ) {
+
                                   val slot = size.width / 7
+
                                   week.forEachIndexed { i, (_, n) ->
+
                                       val h = size.height * n / max
+
                                       drawRoundRect(
-                                          if (i == 6) accent else accent.copy(.35f),
-                                          Offset(i * slot + slot * .2f, size.height - h),
-                                          Size(slot * .6f, h.coerceAtLeast(4f)), CornerRadius(8f))
+                                          color = if (i == 6) {
+                                              accent
+                                          } else {
+                                              accent.copy(alpha = .35f)
+                                          },
+                                          topLeft = Offset(
+                                              i * slot + slot * .2f,
+                                              size.height - h
+                                          ),
+                                          size = Size(
+                                              slot * .6f,
+                                              h.coerceAtLeast(4f)
+                                          ),
+                                          cornerRadius = CornerRadius(8f)
+                                      )
                                   }
                               }
-                              Row(Modifier.fillMaxWidth()) {
+
+                              Row(
+                                  modifier = Modifier.fillMaxWidth()
+                              ) {
+
                                   week.forEach { (d, n) ->
-                                      Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                                          Text(d.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
-                                              fontSize = 11.sp, color = Color.Gray)
-                                          Text("$n", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+
+                                      Column(
+                                          modifier = Modifier.weight(1f),
+                                          horizontalAlignment = Alignment.CenterHorizontally
+                                      ) {
+
+                                          Text(
+                                              d.dayOfWeek.getDisplayName(
+                                                  TextStyle.SHORT,
+                                                  Locale.getDefault()
+                                              ),
+                                              fontSize = 11.sp,
+                                              color = Color.Gray
+                                          )
+
+                                          Text(
+                                              "$n",
+                                              fontSize = 12.sp,
+                                              fontWeight = FontWeight.Medium
+                                          )
                                       }
                                   }
                               }
@@ -204,27 +346,87 @@ fun Dashboard() {
                       }
 
                       if (!on) {
+
                           Spacer(Modifier.height(16.dp))
-                          Button(onClick = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
-                              Modifier.fillMaxWidth()) { Text("Enable tracking (Accessibility)") }
+
+                          Button(
+                              onClick = {
+                                  startActivity(
+                                      Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                  )
+                              },
+                              modifier = Modifier.fillMaxWidth()
+                          ) {
+                              Text("Enable tracking (Accessibility)")
+                          }
                       }
+
                       Spacer(Modifier.height(16.dp))
+
                       AdBanner()
                   }
               }
 
               @Composable
-              fun Stat(label: String, value: String, m: Modifier) {
-                  Card(m, shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                      Column(Modifier.padding(16.dp)) {
-                          Text(label, color = Color.Gray, fontSize = 12.sp)
-                          Text(value, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+              fun AdBanner() {
+
+                  AndroidView(
+                      modifier = Modifier.fillMaxWidth(),
+                      factory = { context ->
+
+                          AdView(context).apply {
+
+                              setAdSize(AdSize.BANNER)
+
+                              adUnitId =
+                                  "ca-app-pub-3940256099942544/9214589741"
+
+                              loadAd(
+                                  AdRequest.Builder().build()
+                              )
+                          }
+                      }
+                  )
+              }
+
+              @Composable
+              fun Stat(
+                  label: String,
+                  value: String,
+                  m: Modifier
+              ) {
+
+                  Card(
+                      m,
+                      shape = RoundedCornerShape(16.dp),
+                      colors = CardDefaults.cardColors(
+                          containerColor = Color.White
+                      )
+                  ) {
+
+                      Column(
+                          Modifier.padding(16.dp)
+                      ) {
+
+                          Text(
+                              label,
+                              color = Color.Gray,
+                              fontSize = 12.sp
+                          )
+
+                          Text(
+                              value,
+                              fontSize = 28.sp,
+                              fontWeight = FontWeight.Bold
+                          )
                       }
                   }
               }
           }
           EOF
+
           mkdir -p $(dirname app/src/main/java/com/example/reeltracker/ReelService.kt)
+
           cat > app/src/main/java/com/example/reeltracker/ReelService.kt <<'EOF'
           package com.example.reeltracker
 
@@ -233,31 +435,47 @@ fun Dashboard() {
           import android.view.accessibility.AccessibilityEvent
 
           class ReelService : AccessibilityService() {
+
               private var lastCount = 0L
 
               override fun onAccessibilityEvent(e: AccessibilityEvent) {
-                  if (e.eventType != AccessibilityEvent.TYPE_VIEW_SCROLLED) return
-                  if (e.packageName != "com.instagram.android") return
 
-                  // Only count when the Reels viewer is on screen.
-                  // NOTE: Instagram can rename this view id in updates; adjust if counting stops.
+                  if (e.eventType != AccessibilityEvent.TYPE_VIEW_SCROLLED) {
+                      return
+                  }
+
+                  if (e.packageName != "com.instagram.android") {
+                      return
+                  }
+
                   val root = rootInActiveWindow ?: return
-                  val inReels = root.findAccessibilityNodeInfosByViewId(
-                      "com.instagram.android:id/clips_viewer_view_pager"
-                  ).isNotEmpty()
-                  if (!inReels) return
 
-                  // Debounce: one swipe fires several scroll events.
+                  val inReels =
+                      root.findAccessibilityNodeInfosByViewId(
+                          "com.instagram.android:id/clips_viewer_view_pager"
+                      ).isNotEmpty()
+
+                  if (!inReels) {
+                      return
+                  }
+
                   val now = SystemClock.elapsedRealtime()
-                  if (now - lastCount < 800) return
+
+                  if (now - lastCount < 800) {
+                      return
+                  }
+
                   lastCount = now
+
                   ReelStore.increment(this)
               }
 
               override fun onInterrupt() {}
           }
           EOF
+
           mkdir -p $(dirname app/src/main/java/com/example/reeltracker/ReelStore.kt)
+
           cat > app/src/main/java/com/example/reeltracker/ReelStore.kt <<'EOF'
           package com.example.reeltracker
 
@@ -265,21 +483,46 @@ fun Dashboard() {
           import java.time.LocalDate
 
           object ReelStore {
-              private fun prefs(c: Context) = c.getSharedPreferences("reels", Context.MODE_PRIVATE)
+
+              private fun prefs(c: Context) =
+                  c.getSharedPreferences("reels", Context.MODE_PRIVATE)
 
               fun increment(c: Context) {
-                  val k = LocalDate.now().toString()
-                  prefs(c).edit().putInt(k, prefs(c).getInt(k, 0) + 1).apply()
+
+                  val key = LocalDate.now().toString()
+
+                  prefs(c)
+                      .edit()
+                      .putInt(
+                          key,
+                          prefs(c).getInt(key, 0) + 1
+                      )
+                      .apply()
               }
 
-              fun count(c: Context, d: LocalDate) = prefs(c).getInt(d.toString(), 0)
+              fun count(
+                  c: Context,
+                  d: LocalDate
+              ) =
+                  prefs(c).getInt(d.toString(), 0)
 
-              /** Oldest -> newest, ending today. */
-              fun lastDays(c: Context, n: Int) =
-                  (n - 1 downTo 0).map { LocalDate.now().minusDays(it.toLong()).let { d -> d to count(c, d) } }
+              fun lastDays(
+                  c: Context,
+                  n: Int
+              ) =
+                  (n - 1 downTo 0).map { i ->
+                      LocalDate
+                          .now()
+                          .minusDays(i.toLong())
+                          .let { d ->
+                              d to count(c, d)
+                          }
+                  }
           }
           EOF
+
           mkdir -p $(dirname app/src/main/res/xml/accessibility_config.xml)
+
           cat > app/src/main/res/xml/accessibility_config.xml <<'EOF'
           <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
               android:accessibilityEventTypes="typeViewScrolled"
@@ -290,20 +533,40 @@ fun Dashboard() {
               android:notificationTimeout="100"
               android:description="@string/service_desc"/>
           EOF
+
           mkdir -p $(dirname app/src/main/res/values/strings.xml)
+
           cat > app/src/main/res/values/strings.xml <<'EOF'
           <resources>
               <string name="service_desc">Counts reels you scroll in Instagram. Only the count is stored, on this device.</string>
           </resources>
           EOF
+
           mkdir -p $(dirname settings.gradle.kts)
+
           cat > settings.gradle.kts <<'EOF'
-          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
-          dependencyResolutionManagement { repositories { google(); mavenCentral() } }
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
           rootProject.name = "ReelTracker"
+
           include(":app")
           EOF
+
           mkdir -p $(dirname build.gradle.kts)
+
           cat > build.gradle.kts <<'EOF'
           plugins {
               id("com.android.application") version "8.5.2" apply false
@@ -311,13 +574,17 @@ fun Dashboard() {
               id("org.jetbrains.kotlin.plugin.compose") version "2.0.20" apply false
           }
           EOF
+
           mkdir -p $(dirname gradle.properties)
+
           cat > gradle.properties <<'EOF'
           android.useAndroidX=true
           org.gradle.jvmargs=-Xmx3g
-          EOF
+               EOF
+
       - name: Build
         run: gradle assembleDebug --no-daemon
+
       - uses: actions/upload-artifact@v4
         with:
           name: ReelTracker-APK
